@@ -79,7 +79,7 @@ class EventCfg:
 
 
 @configclass
-class MovePickPlaceBoxG129Dex3WholedobyEnvCfg(ManagerBasedRLEnvCfg):
+class MovePickPlaceBoxG129Dex3WholebodyEnvCfg(ManagerBasedRLEnvCfg):
     scene: PickPlaceBoxTaskSceneCfg = PickPlaceBoxTaskSceneCfg(
         num_envs=1,
         env_spacing=2.5,

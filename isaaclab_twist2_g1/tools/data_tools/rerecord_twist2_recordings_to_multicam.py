@@ -85,7 +85,7 @@ TASK_TO_ENV_CONFIG = {
     "Isaac-Move-Football-Single-G129-Dex3-Wholebody": (
         ISAACLAB_ROOT / "tasks/common_env_config/football_single_twist2.yaml"
     ).resolve(),
-    "Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby": (
+    "Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody": (
         ISAACLAB_ROOT / "tasks/common_env_config/pickplace_box_twist2.yaml"
     ).resolve(),
     "Isaac-Move-Open-Door-G129-Dex3-Wholebody": (

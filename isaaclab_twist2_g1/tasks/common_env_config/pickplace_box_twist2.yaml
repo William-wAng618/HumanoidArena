@@ -1,6 +1,6 @@
 name: pickplace_box_twist2
-description: TWIST2 env config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby.
-task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby
+description: TWIST2 env config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody.
+task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody
 backend: twist2
 
 overrides:

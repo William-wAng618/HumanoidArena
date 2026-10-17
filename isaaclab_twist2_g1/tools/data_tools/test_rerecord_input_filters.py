@@ -23,14 +23,14 @@ class RerecordInputFilterTests(unittest.TestCase):
             np.savez_compressed(
                 good_file,
                 schema_version=np.array("sonic_episode_v3"),
-                task=np.array("Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby"),
+                task=np.array("Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody"),
             )
             (source_root / "broken.npz").write_bytes(b"not-a-zip")
             (source_root / "leftover_temp.npz").write_bytes(b"partial")
 
             original_mapping = dict(sonic_rerecord.TASK_TO_ENV_CONFIG)
             try:
-                sonic_rerecord.TASK_TO_ENV_CONFIG["Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby"] = (
+                sonic_rerecord.TASK_TO_ENV_CONFIG["Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody"] = (
                     tmp_path / "dummy_env.yaml"
                 )
                 args = SimpleNamespace(
@@ -67,7 +67,7 @@ class RerecordInputFilterTests(unittest.TestCase):
         job = {
             "source_file": Path("/tmp/source.npz"),
             "env_config": Path("/tmp/env.yaml"),
-            "task_name": "Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby",
+            "task_name": "Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody",
         }
         runtime_config = build_worker_runtime_config(
             worker_index=0,
@@ -114,7 +114,7 @@ class RerecordInputFilterTests(unittest.TestCase):
         job = {
             "source_file": Path("/tmp/source.npz"),
             "env_config": Path("/tmp/env.yaml"),
-            "task_name": "Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby",
+            "task_name": "Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody",
         }
         runtime_config = build_worker_runtime_config(
             worker_index=0,
@@ -151,7 +151,7 @@ class RerecordInputFilterTests(unittest.TestCase):
             good_file = input_root / "ok.npz"
             np.savez_compressed(
                 good_file,
-                task=np.array("Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby"),
+                task=np.array("Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody"),
             )
             (input_root / "broken.npz").write_bytes(b"not-a-zip")
             (input_root / "leftover_temp.npz").write_bytes(b"partial")
@@ -212,7 +212,7 @@ class RerecordInputFilterTests(unittest.TestCase):
             python_bin="/usr/bin/python",
             replay_file=Path("/tmp/source.npz"),
             output_dir=Path("/tmp/output"),
-            task_name="Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby",
+            task_name="Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody",
             env_config_yaml="/tmp/env.yaml",
             runtime_config=runtime_config,
         )

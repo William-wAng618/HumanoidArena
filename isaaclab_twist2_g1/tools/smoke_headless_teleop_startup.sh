@@ -80,7 +80,7 @@ try:
         "tasks.g1_tasks.move_pickplace_doubledesk_g1_29dof_dex3_wholebody",
         "tasks.g1_tasks.move_football_single_g1_29dof_dex3_wholebody",
         "tasks.g1_tasks.move_open_door_g1_29dof_dex3_wholebody",
-        "tasks.g1_tasks.move_pickplace_box_g1_29dof_dex3_wholedoby",
+        "tasks.g1_tasks.move_pickplace_box_g1_29dof_dex3_wholebody",
         "tasks.g1_tasks.move_sit_sofa_g1_29dof_dex3_wholebody",
         "tasks.g1_tasks.move_small_warehouse_vision_navigation_g1_29dof_dex3_wholebody",
     ):

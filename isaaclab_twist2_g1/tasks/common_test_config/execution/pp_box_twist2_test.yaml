@@ -1,6 +1,6 @@
 name: pp_box_twist2_test
-description: Test-only TWIST2 eval config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby.
-task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby
+description: Test-only TWIST2 eval config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody.
+task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody
 backend: twist2
 
 test_defaults:

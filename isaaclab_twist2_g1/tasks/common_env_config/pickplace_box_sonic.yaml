@@ -1,6 +1,6 @@
 name: pickplace_box_sonic
-description: SONIC env config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby.
-task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby
+description: SONIC env config for Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody.
+task_name: Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody
 backend: sonic
 
 overrides:

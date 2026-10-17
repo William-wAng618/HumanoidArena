@@ -87,7 +87,7 @@ resolve_sonic_env_config_yaml() {
     Isaac-Move-Open-Door-G129-Dex3-Wholebody)
       printf '%s\n' "tasks/common_env_config/opendoor_sonic.yaml"
       ;;
-    Isaac-Move-PickPlace-Box-G129-Dex3-Wholedoby)
+    Isaac-Move-PickPlace-Box-G129-Dex3-Wholebody)
       printf '%s\n' "tasks/common_env_config/pickplace_box_sonic.yaml"
       ;;
     Isaac-Move-PickPlace-DoubleDesk-G129-Dex3-Wholebody)
