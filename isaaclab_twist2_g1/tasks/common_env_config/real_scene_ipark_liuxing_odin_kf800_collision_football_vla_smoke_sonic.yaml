@@ -1,0 +1,56 @@
+name: real_scene_ipark_liuxing_odin_kf800_collision_football_vla_smoke_sonic
+description: Fixed-horizon SONIC VLA smoke with the accepted Liuxing ipark Gaussian visual and aligned Odin KF800 LiDAR collision.
+task_name: Isaac-Move-Football-Single-G129-Dex3-Wholebody
+backend: sonic
+
+test_defaults:
+  seeds: [0]
+  repeats_per_seed: 1
+  persistent_sim: true
+
+overrides:
+  wait_for_textures: false
+  sim:
+    dt: 0.005
+  decimation: 4
+
+  object_reset_seed_source: env_seed
+  deterministic_object_resets:
+    - record_name: football
+      scene_keys: [object, football]
+      pose_range:
+        x: [-3.239, -3.239]
+        y: [-3.225, -3.225]
+        z: [-1.014, -1.014]
+      zero_velocity_on_reset: true
+
+  scene:
+    room:
+      spawn:
+        usd_path: ${PROJECT_ROOT}/assets/objects/real_scene/ipark_liuxing_odin_kf800_collision_scene.usda
+      init_state:
+        pos: [0.0, 0.0, 0.0]
+        rot: [1.0, 0.0, 0.0, 0.0]
+
+    robot:
+      init_state:
+        pos: [-3.239, -4.425, -0.335]
+        rot: [0.7071, 0.0, 0.0, 0.7071]
+
+    object:
+      init_state:
+        pos: [-3.239, -3.225, -1.014]
+        rot: [1.0, 0.0, 0.0, 0.0]
+
+    ground: null
+    goal_net: null
+    goal_backdrop_1: null
+    goal_backdrop_2: null
+    goal_backdrop_3: null
+    goal_backdrop_4: null
+
+    light:
+      spawn:
+        intensity: 8000.0
+
+    robot_key_light: null
