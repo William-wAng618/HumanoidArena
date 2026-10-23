@@ -10,7 +10,16 @@ test_defaults:
   episode_seed_formula: sha256(task_name|group_seed|repeat_idx)_positive_int32
 
 overrides:
+  # Pure semantic-football-test baseline: disable the optional ipark
+  # real-scene Gaussian background (5.1 hangs with gauss rendering on this box;
+  # keep the pure football single scene as the benchmark).
+  scene.room: null
   scene.goal_net.spawn.usd_path: "${PROJECT_ROOT}/assets/objects/small_warehouse/football_scene/interaction_obj/football_goal/football_goal_physics_semantic.usd"
+  # Activate the scene-level dynamic semantic basketball: move it to its air
+  # spawn point (goal origin (-2.5, 3.0, 0.65) + BASKETBALL_LOCAL_OFFSET) and
+  # re-enable gravity so it falls & interacts like a normal rigid body.
+  scene.semantic_basketball.init_state.pos: [-0.03698494206654779, 0.49620825073582786, 0.9291186808994101]
+  scene.semantic_basketball.spawn.rigid_props.disable_gravity: false
   wait_for_textures: false
   sim:
     dt: 0.001

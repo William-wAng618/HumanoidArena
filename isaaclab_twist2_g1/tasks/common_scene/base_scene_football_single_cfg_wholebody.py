@@ -32,6 +32,16 @@ BALL_OFFSET_X = 0.0
 BALL_OFFSET_Y = BALL_DISTANCE
 GOAL_OFFSET_X = -GOAL_CENTER_Y_OFFSET
 GOAL_OFFSET_Y = GOAL_DISTANCE
+
+# Semantic-interference basketball constants.
+# The dynamic basketball for the semantic test is registered as a scene-level
+# RigidObject (spawned at scene build -> PhysX simulates it normally). For
+# non-semantic runs it is parked far below the ground with gravity disabled,
+# fully invisible and inert; the semantic test yaml moves it to its air spawn
+# point and re-enables gravity.
+BASKETBALL_LOCAL_OFFSET = (2.463015057933452, -2.503791749264172, 0.2791186808994101)
+SEMANTIC_BASKETBALL_HIDDEN_POS = (0.0, 0.0, -200.0)
+SEMANTIC_BASKETBALL_MASS = 1.0
 GOAL_NET_1_ORIGIN = (ROBOT_INIT_X + GOAL_OFFSET_X, ROBOT_INIT_Y + GOAL_OFFSET_Y)
 GOAL_NET_2_ORIGIN = (ROBOT_INIT_X - GOAL_OFFSET_X, ROBOT_INIT_Y - GOAL_OFFSET_Y)
 GOAL_NET_ORIGIN_TO_CENTER_LOCAL = (0.0, 0.0)
@@ -123,6 +133,38 @@ class TableFootballSceneCfgWH(InteractiveSceneCfg):
                 collision_enabled=GOAL_COLLISION_ENABLED,
                 contact_offset=GOAL_CONTACT_OFFSET,
                 rest_offset=GOAL_REST_OFFSET,
+            ),
+        ),
+    )
+
+    # Semantic-interference basketball (dynamic).
+    # The semantic goal USD embeds a "basketball_semantic" child at a fixed
+    # local pose, but GoalNet is a kinematic asset, so that embedded ball is
+    # glued to the goal hierarchy and never falls. Instead of patching bodies
+    # at runtime (runtime-created rigid bodies are not simulated by PhysX),
+    # the dynamic basketball is registered HERE at scene build: it falls with
+    # gravity and interacts like any other rigid object. The embedded child is
+    # deactivated by tools/semantic_basketball.ensure_semantic_basketballs()
+    # so the semantic scene shows exactly one ball.
+    semantic_basketball = RigidObjectCfg(
+        prim_path="/World/envs/env_.*/SemanticBasketball",
+        init_state=RigidObjectCfg.InitialStateCfg(
+            pos=list(SEMANTIC_BASKETBALL_HIDDEN_POS),
+            rot=[1.0, 0.0, 0.0, 0.0],
+        ),
+        spawn=UsdFileCfg(
+            usd_path=f"{project_root}/assets/objects/small_warehouse/football_scene/interaction_obj/basketball/basketball_physics.usda",
+            scale=(1.0, 1.0, 1.0),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                rigid_body_enabled=True,
+                kinematic_enabled=False,
+                disable_gravity=True,
+            ),
+            mass_props=sim_utils.MassPropertiesCfg(mass=SEMANTIC_BASKETBALL_MASS),
+            collision_props=sim_utils.CollisionPropertiesCfg(
+                collision_enabled=True,
+                contact_offset=0.005,
+                rest_offset=0.0,
             ),
         ),
     )

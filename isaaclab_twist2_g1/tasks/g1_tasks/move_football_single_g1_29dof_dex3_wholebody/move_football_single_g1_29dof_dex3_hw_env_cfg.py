@@ -428,6 +428,16 @@ class MoveFootballG129Dex3WholebodyEnvCfg(ManagerBasedRLEnvCfg):
             except Exception as exc:
                 print(f"[football_physics] skipped: {exc}")
 
+            try:
+                from tools.semantic_basketball import ensure_semantic_basketballs
+
+                goal_usd = (
+                    getattr(getattr(getattr(self.scene, "goal_net", None), "spawn", None), "usd_path", "") or ""
+                )
+                ensure_semantic_basketballs(force="physics_semantic" in str(goal_usd))
+            except Exception as exc:
+                print(f"[semantic_basketball] setup skipped: {exc}")
+
             stage = omni.usd.get_context().get_stage()
             create_simple_debug_lines(
                 stage,
@@ -458,5 +468,14 @@ class MoveFootballG129Dex3WholebodyEnvCfg(ManagerBasedRLEnvCfg):
                 uv_scale=(15.0, 15.0),
             )
             print(f"[grass_ground_material] after reset apply result: {grass_ok_post}")
+            try:
+                from tools.semantic_basketball import ensure_semantic_basketballs
+
+                goal_usd = (
+                    getattr(getattr(getattr(self.scene, "goal_net", None), "spawn", None), "usd_path", "") or ""
+                )
+                ensure_semantic_basketballs(force="physics_semantic" in str(goal_usd))
+            except Exception as exc:
+                print(f"[semantic_basketball] reset skipped: {exc}")
         except Exception as exc:
             print(f"[football_runtime] post-reset grass skipped: {exc}")
