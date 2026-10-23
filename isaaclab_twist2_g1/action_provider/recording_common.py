@@ -63,12 +63,18 @@ class AsyncEpisodeRecorder:
             data_buffer, timestamp_us, callback = task
             with self._lock:
                 self._active_workers += 1
-            success = self._save_to_disk(data_buffer, timestamp_us)
-            if callback is not None:
-                callback(success)
-            with self._lock:
-                self._active_workers = max(0, self._active_workers - 1)
-            self.save_queue.task_done()
+            try:
+                success = self._save_to_disk(data_buffer, timestamp_us)
+                if callback is not None:
+                    callback(success)
+            except Exception as exc:
+                print(f"[AsyncEpisodeRecorder] save worker error: {exc}")
+            finally:
+                with self._lock:
+                    self._active_workers = max(0, self._active_workers - 1)
+                # Must run on every path: shutdown() joins the queue, so a missed
+                # task_done() would hang the process at exit instead of just losing a frame.
+                self.save_queue.task_done()
 
     def _save_to_disk(self, data_buffer: list[dict[str, Any]], timestamp_us: int) -> bool:
         temp_basename = f"{self.task_name}_{timestamp_us}_temp"
@@ -144,11 +150,15 @@ class AsyncEpisodeRecorder:
     def shutdown(self) -> None:
         if self.is_recording:
             self.cancel_recording()
-        if not self.save_queue.empty():
-            self.save_queue.join()
+        # Always drain, never gate on queue.empty(): a worker that has already dequeued a
+        # pending save leaves the queue empty while the write is still in flight, so the
+        # old `if not self.save_queue.empty()` guard skipped the wait and let the process
+        # exit mid-write, leaving a truncated .npz (BadZipFile on read). _save_worker calls
+        # task_done() on every path, so join() always returns once the write finishes.
+        self.save_queue.join()
         self.thread_running = False
         for _ in self.save_threads:
             self.save_queue.put(None)
         for thread in self.save_threads:
             if thread.is_alive():
-                thread.join(timeout=10.0)
+                thread.join(timeout=120.0)

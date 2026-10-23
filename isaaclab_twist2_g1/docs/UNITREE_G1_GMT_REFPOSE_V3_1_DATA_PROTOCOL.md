@@ -7,6 +7,7 @@ Implementation references:
 - `isaaclab_twist2_g1/tools/data_tools/smpl_lerobot_v3_common.py`
 - `isaaclab_twist2_g1/tools/data_tools/twist2lerobot_rotlocal_v3.py`
 - `isaaclab_twist2_g1/tools/data_tools/sonic2lerobot_rotlocal_v3.py`
+- `isaaclab_twist2_g1/tools/data_tools/mimic_lite2lerobot_64_40.py`
 - `isaaclab_twist2_g1/action_provider/vla_robot_current_local_runtime_v3.py`
 
 ## Schema
@@ -119,6 +120,24 @@ hand_binary                  = recorded hand binary
 
 For frame 0, `root_ref_base_local_xy_delta` is `[0, 0]`.
 
+## MimicLite Conversion
+
+The MimicLite converter uses the recorded raw reference fields:
+
+- `human_raw_body_pos`
+- `human_raw_body_quat_w`
+- `human_raw_joint_pos`
+- `human_raw_controller_data_json` for Pico grip binary labels, or compatible recorded hand-binary fields
+
+For each episode it removes the initial reference heading:
+
+```text
+Q_anchor = heading(human_raw_body_quat_w[0])
+root_ref_rot6d = rot6d(inverse(Q_anchor) * human_raw_body_quat_w[t])
+```
+
+Root XY deltas are computed from consecutive `human_raw_body_pos` samples, rotated by `inverse(Q_anchor)`, then expressed in the current reference root/base frame. The converter must not align MimicLite actions to the simulated robot's initial yaw and must not keep raw world-frame yaw.
+
 ## Required Source NPZ Fields
 
 Common fields:
@@ -137,6 +156,13 @@ SONIC-specific fields:
 
 - `human_body_pos` / `human_body_quat_w`
 - `human_joint_pos` or compatible VLA joint target fields.
+
+MimicLite-specific fields:
+
+- `human_raw_body_pos`
+- `human_raw_body_quat_w`
+- `human_raw_joint_pos`
+- `human_raw_controller_data_json` or compatible hand-binary fields.
 
 ## Validation
 

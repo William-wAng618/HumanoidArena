@@ -1148,8 +1148,6 @@ def main():
             new_cam = vp.get_active_camera()
             if new_cam == cam_path:
                 print(f"  ✅ Successfully switched viewport to: {cam_path}")
-                for _ in range(3):
-                    simulation_app.update()
             else:
                 print(f"  ❌ Failed to switch! Viewport still at: {new_cam}")
         else:

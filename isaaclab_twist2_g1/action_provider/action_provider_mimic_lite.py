@@ -496,6 +496,7 @@ class MimicLiteActionProvider(ActionProvider):
         self._replay_body_targets = None
         self._replay_commands = None
         self._replay_policies = None
+        self._replay_policy_actions = None
         self._replay_recorded_joint_pos = None
         self._replay_hand_left = None
         self._replay_hand_right = None
@@ -1243,6 +1244,7 @@ class MimicLiteActionProvider(ActionProvider):
             )
             self._replay_commands = self._load_replay_array(replay_data, "mimic_command")
             self._replay_policies = self._load_replay_array(replay_data, "mimic_policy")
+            self._replay_policy_actions = self._load_replay_array(replay_data, "mimic_policy_action")
             if self._replay_mode == "inference_replay":
                 if self._replay_commands is None or self._replay_policies is None:
                     raise KeyError(
@@ -1340,8 +1342,15 @@ class MimicLiteActionProvider(ActionProvider):
                 "policy": policy.copy(),
             }
         # direct_replay
-        target = np.asarray(self._replay_body_targets[frame_idx], dtype=np.float32).reshape(29)
-        action = (target - self.runtime.default_joint_pos) / max(self.runtime.action_scale, 1e-6)
+        target = np.asarray(self._replay_body_targets[frame_idx], dtype=np.float32).reshape(-1)
+        if target.shape[0] != 29:
+            raise ValueError(f"[MimicLite] direct_replay target must have 29 dims, got {target.shape}")
+        if self._replay_policy_actions is not None and frame_idx < len(self._replay_policy_actions):
+            action = np.asarray(self._replay_policy_actions[frame_idx], dtype=np.float32).reshape(-1)
+            if action.shape[0] != 29:
+                raise ValueError(f"[MimicLite] replay policy action must have 29 dims, got {action.shape}")
+        else:
+            action = np.zeros((29,), dtype=np.float32)
         self.runtime.last_action = action.copy()
         self.runtime.last_target = target.copy()
         self.runtime.prev_action_hist.append(action.copy())
@@ -1387,16 +1396,6 @@ class MimicLiteActionProvider(ActionProvider):
             print(f"[MimicLite] Max rerecord reward={max_reward:.4f} any_success={str(any_success).lower()}")
             print("[MimicLite] Finalizing replay rerecord before exit")
             self.recording_manager.save_recording()
-        if self._exit_when_replay_complete:
-            sim = getattr(self.env, "sim", None)
-            stop_fn = getattr(sim, "stop", None)
-            if callable(stop_fn):
-                try:
-                    stop_fn()
-                    print("[MimicLite] Requested env.sim.stop() after replay completion")
-                except Exception as exc:
-                    print(f"[MimicLite] env.sim.stop() after replay completion failed: {exc}")
-
     def should_exit_after_replay_complete(self) -> bool:
         if not self._exit_when_replay_complete:
             return False
