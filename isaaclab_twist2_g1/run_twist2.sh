@@ -2,15 +2,17 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export ISAACLAB_CONDA_ENV_NAME="${ISAACLAB_CONDA_ENV_NAME:-unitree_sim_env}"
+source "${SCRIPT_DIR}/script/common/runtime_paths.sh"
 cd "${SCRIPT_DIR}" || exit 1
 
 # ------------------------------------------------------------------
 # User config: edit here
 # ------------------------------------------------------------------
-PYTHON_BIN="python"
+PYTHON_BIN="${PYTHON_BIN:-${ISAACLAB_PYTHON}}"
 # ENV_CONFIG_YAML="tasks/common_env_config/small_warehouse_vision_navigation_twist2.yaml"
 # ENV_CONFIG_YAML="tasks/common_env_config/pickplace_box_twist2.yaml"
-ENV_CONFIG_YAML="tasks/common_env_config/opendoor_twist2.yaml"
+ENV_CONFIG_YAML="${ENV_CONFIG_YAML:-tasks/common_env_config/opendoor_twist2.yaml}"
 # ENV_CONFIG_YAML="tasks/common_env_config/livingroom_sitsofa_twist2.yaml"
 # ENV_CONFIG_YAML="tasks/common_env_config/boxing_bag_twist2.yaml"
 # ENV_CONFIG_YAML="tasks/common_env_config/football_single_twist2.yaml"
@@ -21,9 +23,9 @@ ROBOT_COLLIDER_MODE="box"   # box | fourpoints
 SEED="42"
 ENABLE_CAMERAS=1
 ENABLE_DEX3_DDS=1
-HEADLESS=0
+HEADLESS="${HEADLESS:-0}"
 IMAGE_TRANSPORT="xrobot"
-IMAGE_XROBOT_HOST="10.42.0.35" # eth
+IMAGE_XROBOT_HOST="${IMAGE_XROBOT_HOST:-10.42.0.35}" # eth
 # IMAGE_XROBOT_HOST="192.168.101.174" #｜ wifi
 IMAGE_XROBOT_PORT="12345"
 IMAGE_XROBOT_BITRATE="16777216"
@@ -32,7 +34,7 @@ IMAGE_XROBOT_FFMPEG="/usr/bin/ffmpeg"
 # RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_vision_target/twist2/yb"
 # RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_pp_box/twist2/yb"
 #RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_pp_box/twist2/zk"
-RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_open_door/twist2/zz"
+RECORDING_SAVE_DIR="${RECORDING_SAVE_DIR:-${SCRIPT_DIR}/recording_data/HSI_open_door/twist2/zz}"
 # RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_sit_sofa/twist2/zz"
 # RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_sitingsofa/twist2/zk"
 # RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_boxing/twist2/zz"
@@ -113,6 +115,10 @@ if [ "${ENABLE_DEX3_DDS}" = "1" ]; then
 fi
 if [ "${HEADLESS}" = "1" ]; then
   cmd+=(--headless)
+fi
+
+if [ "$#" -gt 0 ]; then
+  cmd+=("$@")
 fi
 
 exec "${cmd[@]}"

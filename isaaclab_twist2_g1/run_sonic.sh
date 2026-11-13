@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export ISAACLAB_CONDA_ENV_NAME="${ISAACLAB_CONDA_ENV_NAME:-unitree_sim_env}"
 source "${SCRIPT_DIR}/script/common/runtime_paths.sh"
 cd "${SCRIPT_DIR}" || exit 1
 
@@ -9,25 +10,25 @@ cd "${SCRIPT_DIR}" || exit 1
 # User config: edit here
 # ------------------------------------------------------------------
 PYTHON_BIN="${PYTHON_BIN:-${ISAACLAB_PYTHON}}"
-ENV_CONFIG_YAML="tasks/common_env_config/boxing_bag_sonic.yaml"
+ENV_CONFIG_YAML="${ENV_CONFIG_YAML:-tasks/common_env_config/boxing_bag_sonic.yaml}"
 RUN_DEVICE="cpu"
 ROBOT_TYPE="g129"
 ROBOT_COLLIDER_MODE="box"   # box | DD
 SEED="42"
 ENABLE_CAMERAS=1
 ENABLE_DEX3_DDS=1
-HEADLESS=0
+HEADLESS="${HEADLESS:-0}"
 SONIC_REDIS_HOST="localhost"
 SONIC_REDIS_PORT="6379"
 SONIC_ENCODER_PATH="${SONIC_ENCODER_PATH:-${SONIC_POLICY_ROOT}/model_encoder.onnx}"
 SONIC_DECODER_PATH="${SONIC_DECODER_PATH:-${SONIC_POLICY_ROOT}/model_decoder.onnx}"
 IMAGE_TRANSPORT="xrobot"
-IMAGE_XROBOT_HOST="10.42.0.35"
+IMAGE_XROBOT_HOST="${IMAGE_XROBOT_HOST:-10.42.0.35}"
 IMAGE_XROBOT_PORT="12345"
 IMAGE_XROBOT_BITRATE="2097152"
 IMAGE_FPS="30"
 IMAGE_XROBOT_FFMPEG="/usr/bin/ffmpeg"
-RECORDING_SAVE_DIR="${SCRIPT_DIR}/recording_data/HSI_boxing/sonic/yb"
+RECORDING_SAVE_DIR="${RECORDING_SAVE_DIR:-${SCRIPT_DIR}/recording_data/HSI_boxing/sonic/yb}"
 
 export PROJECT_ROOT="${SCRIPT_DIR}"
 export PYTHONPATH="${SCRIPT_DIR}:${PYTHONPATH:-}"
@@ -124,6 +125,10 @@ if [ "${ENABLE_DEX3_DDS}" = "1" ]; then
 fi
 if [ "${HEADLESS}" = "1" ]; then
   cmd+=(--headless)
+fi
+
+if [ "$#" -gt 0 ]; then
+  cmd+=("$@")
 fi
 
 exec "${cmd[@]}"
