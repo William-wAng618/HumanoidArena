@@ -336,6 +336,25 @@ def resolve_python_bin(requested: str) -> str:
     raise SystemExit("No usable python interpreter with onnxruntime was found.")
 
 
+def wait_until_npz_readable(path: Path, timeout_s: float = 120.0, interval_s: float = 0.5) -> None:
+    """Block until the recorder has finished flushing the npz central directory.
+
+    The completion watcher fires on file creation, but the sim appends zip entries
+    while saving, so a freshly created npz can still fail to open with BadZipFile.
+    """
+    deadline = time.time() + timeout_s
+    last_exc = None
+    while time.time() < deadline:
+        try:
+            with np.load(path, allow_pickle=True) as data:
+                data.files
+            return
+        except Exception as exc:  # BadZipFile / EOFError while the writer is active
+            last_exc = exc
+            time.sleep(interval_s)
+    raise RuntimeError(f"npz never became readable: {path} ({last_exc})")
+
+
 def read_npz_meta(path: Path) -> tuple[str, str]:
     with np.load(path, allow_pickle=True) as data:
         schema = str(np.asarray(data["schema_version"]).item()) if "schema_version" in data else ""
@@ -736,6 +755,7 @@ def execute_job(
 
     rerecorded_schema = ""
     if rerecorded_tmp_npz is not None:
+        wait_until_npz_readable(rerecorded_tmp_npz)
         rerecorded_schema, _ = read_npz_meta(rerecorded_tmp_npz)
     final_reward = None
     max_reward = None
