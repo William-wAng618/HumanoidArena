@@ -38,6 +38,15 @@ VISION_NAVI_ROOM_ASSET_VARIANT_ENV = "VISION_NAVI_ROOM_ASSET_VARIANT"
 VISION_NAVI_ROOM_ASSET_VARIANT_VALIDATION = "validation"
 VISION_NAVI_ROOM_ASSET_VARIANT_RECORDED_COMPAT = "recorded_compat"
 
+# The vision-navigation room has two variants: the original digital twin
+# (recorded_compat) and an optimized validation room introduced on 2026-04-27.
+# Episodes collected after that date were produced with the validation room, so
+# replaying them against the digital twin silently changes floor/wall collision
+# geometry and only diverges once the robot brushes those surfaces.
+VISION_NAVI_INFERENCE_VALIDATION_SINCE_US = int(
+    _dt.datetime(2026, 4, 27, tzinfo=_dt.timezone.utc).timestamp() * 1_000_000
+)
+
 OPEN_DOOR_TASK_PROFILES: dict[str, dict[str, str]] = {
     TASK_RUNTIME_PROFILE_INFERENCE: {
         "OPEN_DOOR_LATCH_DISABLE": "0",
@@ -268,16 +277,20 @@ def read_replay_recording_timestamp_us(replay_file):
 def resolve_recording_aware_profile(task_name, replay_file, requested_profile):
     """Pick a runtime profile from the recording timestamp when the request is auto.
 
-    Only open_door currently has a recording-time dependent asset variant; other tasks
-    fall through to the existing auto (context based) behaviour."""
+    open_door and vision_navi ship two asset variants whose switch-over time is known,
+    so their replay profile is derived from the recording timestamp. Every other task
+    falls through to the existing auto (context based) behaviour."""
     normalized = str(requested_profile or TASK_RUNTIME_PROFILE_AUTO).strip().lower()
     if normalized != TASK_RUNTIME_PROFILE_AUTO:
         return normalized
-    if str(task_name or "").strip() != OPEN_DOOR_TASK:
+    task = str(task_name or "").strip()
+    if task not in (OPEN_DOOR_TASK, VISION_NAVI_TASK):
         return normalized
     timestamp_us = read_replay_recording_timestamp_us(replay_file)
     if timestamp_us is None:
         return normalized
-    if timestamp_us >= OPEN_DOOR_INFERENCE_VALI_SINCE_US:
+    if task == OPEN_DOOR_TASK and timestamp_us >= OPEN_DOOR_INFERENCE_VALI_SINCE_US:
+        return TASK_RUNTIME_PROFILE_INFERENCE
+    if task == VISION_NAVI_TASK and timestamp_us >= VISION_NAVI_INFERENCE_VALIDATION_SINCE_US:
         return TASK_RUNTIME_PROFILE_INFERENCE
     return normalized
