@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import datetime as _dt
 import os
+import zipfile as _zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
+
+import numpy as _np
 
 
 TASK_RUNTIME_PROFILE_AUTO = "auto"
@@ -19,6 +23,15 @@ OPEN_DOOR_TASK = "Isaac-Move-Open-Door-G129-Dex3-Wholebody"
 OPEN_DOOR_DOOR_ASSET_VARIANT_ENV = "OPEN_DOOR_DOOR_ASSET_VARIANT"
 OPEN_DOOR_DOOR_ASSET_VARIANT_INFERENCE_VALI = "inference_vali"
 OPEN_DOOR_DOOR_ASSET_VARIANT_RECORDED_COMPAT = "recorded_compat"
+
+# The door asset variant changed on 2026-05-13 (model_door001_vali_gate_welded.usd):
+# episodes recorded after this instant were produced with the *inference* variant
+# (kinematic door frame + working latch). Replaying such an episode with
+# recorded_compat silently swaps the door frame from "gives way" to "nailed down",
+# which only diverges once the robot touches the door.
+OPEN_DOOR_INFERENCE_VALI_SINCE_US = int(
+    _dt.datetime(2026, 5, 13, tzinfo=_dt.timezone.utc).timestamp() * 1_000_000
+)
 
 VISION_NAVI_TASK = "Isaac-Move-SmallWarehouse-VisionNavigation-G129-Dex3-Wholebody"
 VISION_NAVI_ROOM_ASSET_VARIANT_ENV = "VISION_NAVI_ROOM_ASSET_VARIANT"
@@ -232,3 +245,39 @@ def resolve_vision_navi_room_usd_path(
 ) -> str:
     resolved_variant = resolve_vision_navi_room_asset_variant(variant)
     return str(Path(project_root) / VISION_NAVI_ROOM_ASSET_RELATIVE_PATHS[resolved_variant])
+
+
+def read_replay_recording_timestamp_us(replay_file):
+    """Read save_timestamp_us from a replay npz without loading the arrays."""
+    if not replay_file:
+        return None
+    try:
+        with _zipfile.ZipFile(str(replay_file)) as zf:
+            if "save_timestamp_us.npy" not in zf.namelist():
+                return None
+            with zf.open("save_timestamp_us.npy") as fh:
+                value = _np.load(fh, allow_pickle=True)
+        flat = _np.asarray(value).reshape(-1)
+        if flat.size == 0:
+            return None
+        return int(flat[0])
+    except Exception:
+        return None
+
+
+def resolve_recording_aware_profile(task_name, replay_file, requested_profile):
+    """Pick a runtime profile from the recording timestamp when the request is auto.
+
+    Only open_door currently has a recording-time dependent asset variant; other tasks
+    fall through to the existing auto (context based) behaviour."""
+    normalized = str(requested_profile or TASK_RUNTIME_PROFILE_AUTO).strip().lower()
+    if normalized != TASK_RUNTIME_PROFILE_AUTO:
+        return normalized
+    if str(task_name or "").strip() != OPEN_DOOR_TASK:
+        return normalized
+    timestamp_us = read_replay_recording_timestamp_us(replay_file)
+    if timestamp_us is None:
+        return normalized
+    if timestamp_us >= OPEN_DOOR_INFERENCE_VALI_SINCE_US:
+        return TASK_RUNTIME_PROFILE_INFERENCE
+    return normalized

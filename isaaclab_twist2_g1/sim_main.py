@@ -22,7 +22,11 @@ import numpy as np
 import torch
 import gymnasium as gym
 from pathlib import Path
-from task_runtime_profiles import apply_task_runtime_profile
+from task_runtime_profiles import (
+    apply_task_runtime_profile,
+    read_replay_recording_timestamp_us,
+    resolve_recording_aware_profile,
+)
 
 REPO_ROOT = Path(project_root).parent
 DEFAULT_TWIST2_MODEL_PATH = os.environ.get(
@@ -307,6 +311,20 @@ if getattr(args_cli, "record_during_replay", False) and not (
     getattr(args_cli, "input_source", "") == "replay" or getattr(args_cli, "replay_file", "")
 ):
     raise ValueError("--record_during_replay requires replay input (--replay_file / input_source=replay)")
+
+_requested_profile = getattr(args_cli, "task_runtime_profile", "auto")
+_resolved_profile = resolve_recording_aware_profile(
+    getattr(args_cli, "task", ""),
+    getattr(args_cli, "replay_file", ""),
+    _requested_profile,
+)
+if _resolved_profile != _requested_profile:
+    print(
+        "[task_runtime_profile] recording-aware selection: "
+        f"{_requested_profile} -> {_resolved_profile} "
+        f"(recording_timestamp_us={read_replay_recording_timestamp_us(getattr(args_cli, 'replay_file', ''))})"
+    )
+    args_cli.task_runtime_profile = _resolved_profile
 
 apply_task_runtime_profile(args_cli)
 
